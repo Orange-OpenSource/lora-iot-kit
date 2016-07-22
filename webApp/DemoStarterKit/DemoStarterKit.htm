@@ -14,13 +14,19 @@ or at 'http://www.apache.org/licenses/LICENSE-2.0'.
 -->
 <head>
   <title>LoRa IoT Démo Starter Kit</Title>
-  <script src="demoStarterKit_files/configuration.js"></script>
+  <link rel="stylesheet" type="text/css" href="demoStarterKit_files/main.css">
+  
   <script src="generic_files/aes_encryption.js"></script>
   <script src="generic_files/lpwan_encryption.js"></script>
-  <script src="generic_files/datavenue.js"></script>
   <script src="generic_files/bargraph.js"></script>
+  
+  <script src="demoStarterKit_files/configuration.js"></script>
+  
+  <script src="demoStarterKit_files/commons.js"></script>
+  <script src="demoStarterKit_files/datavenue.js"></script>
+  <script src="demoStarterKit_files/LOM.js"></script>
+  
   <script src="demoStarterKit_files/main.js"></script>
-  <link rel="stylesheet" type="text/css" href="demoStarterKit_files/main.css">
 </head>
 <!--
 ==========================================================================================================================
@@ -37,8 +43,8 @@ or at 'http://www.apache.org/licenses/LICENSE-2.0'.
 ==========================================================================================================================
 -->
   <div class="frame1">
-    <div class="col width1">datasource identifier</div>
-    <div class="inline read-only" id="datasource"></div>
+    <div class="col width1">device identifier</div>
+    <div class="inline read-only" id="deviceID"></div>
   </div>
   <br>
 <!--

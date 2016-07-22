@@ -15,95 +15,7 @@
 
 var _DATAVENUE = (function (){
 
-var
-  _BLANK_FUNCTION = function(){ return undefined ;},
-  _url,
-  _timeout,
-  _X_OAPI_Key,
-  _X_ISS_Key,
-  _callbackError,
-  _callbackRequestState ;
-
-//------------------------------------------------------------------------------------------------------------------------
-//  conversion: hexadecimal {string} to bytes {Uint8Array}
-//------------------------------------------------------------------------------------------------------------------------
-
-function convertHexToByteArray (hex){
-
-  var n = hex.length / 2 ;
-  var buf = new Uint8Array (n);
-  var j = 0 ;
-  for (var i = 0 ; i < n ; i++){
-    var j2 = j + 2 ;
-    buf[i] = parseInt (hex.substring (j, j2), 16);
-    j = j2 ;
-  }
-  return buf ;
-}
-
-//------------------------------------------------------------------------------------------------------------------------
-//  conversion: bytes {Uint8Array} to hexadecimal {string}
-//------------------------------------------------------------------------------------------------------------------------
-
-function convertByteArrayToHex (buf){
-
-  var n = buf.length ;
-  var str = "";
-  for (var i = 0 ; i < n ; i++){
-    var b = buf[i];
-    var h = b.toString (16);
-    str += (b <= 15) ? ("0" + h): h ;
-  }
-  return str ;
-}
-
-//------------------------------------------------------------------------------------------------------------------------
-//  validity test for an hexadecimal number
-//------------------------------------------------------------------------------------------------------------------------
-
-function isValidHex (obj){
-
-  return ((typeof obj === "string")&&(obj.match (/^([0-9a-f][0-9a-f])+$/) !== null));
-}
-
-//------------------------------------------------------------------------------------------------------------------------
-//  validity test for a positive integer
-//------------------------------------------------------------------------------------------------------------------------
-
-function isValidPositiveInt (obj){
-
-  return ((typeof obj === "number")&&(obj >= 0));
-}
-
-//------------------------------------------------------------------------------------------------------------------------
-//  sends a request
-//
-//  in:
-//    callbackReceive (): function called when the request state changes
-//    urlPath {string}: variable part of the url
-//    method {string}: request method
-//    json {object}: json data to send (undefined if no data)
-//  out:
-//    request {XMLHttpRequest}: request
-//------------------------------------------------------------------------------------------------------------------------
-
-function sendRequest (request, callbackReceive, urlPath, method, json){
-
-  _callbackRequestState (true);
-  request.open (method, _url + urlPath, true);
-  request.setRequestHeader ("X-OAPI-Key", _X_OAPI_Key);
-  request.setRequestHeader ("X-ISS-Key", _X_ISS_Key);
-  request.onreadystatechange = callbackReceive ;
-  request.timeout = _timeout ;
-  request.ontimeout = function () { _callbackError ("timed out request"); };
-  var data ;
-  if (json !== undefined){
-    request.setRequestHeader ("Content-Type", "application/json");
-    data = "[" + JSON.stringify (json) + "]";
-  } else
-    data = null ;
-  request.send (data);
-}
+var headers;
 
 //------------------------------------------------------------------------------------------------------------------------
 //  initialization
@@ -116,21 +28,18 @@ function sendRequest (request, callbackReceive, urlPath, method, json){
 //    callbackRequestState (ongoingRequest {boolean}): function called at the beginning and end of a request (if not undefined)
 //------------------------------------------------------------------------------------------------------------------------
 
-function init (url, timeout, X_OAPI_Key, X_ISS_Key, callbackError, callbackRequestState){
-
-  _url = url ;
-  _timeout = timeout ;
-  _X_OAPI_Key = X_OAPI_Key ;
-  _X_ISS_Key = X_ISS_Key ;
-  _callbackError = callbackError ;
-  _callbackRequestState = (callbackRequestState === undefined)? _BLANK_FUNCTION : callbackRequestState ;
+function init (X_OAPI_Key, X_ISS_Key){  
+  headers = {
+    "X-OAPI-Key": X_OAPI_Key, 
+    "X-ISS-Key": X_ISS_Key
+  };
 }
 
 //------------------------------------------------------------------------------------------------------------------------
 //  request to get all stream identifiers
 //
 //  in:
-//    device.datasource {string}: datasource identifier
+//    device.deviceID {string}: datasource identifier
 //    callback: function called in case of success (if not undefined)
 //  out:
 //    device.streams.message {string}
@@ -166,9 +75,9 @@ function getStreams (device, callback){
       if (callback != undefined)
         callback ();
     } catch (err){
-      _callbackError (err);
+      _COMMONS.callbackError (err);
     } finally {
-      _callbackRequestState (false);
+      _COMMONS.callbackRequestState (false);
     }
   };
   
@@ -176,11 +85,11 @@ function getStreams (device, callback){
   
   try {
     var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.datasource + "/streams" ;
-    sendRequest (request, callbackReceive, urlPath, "GET");
+    var urlPath = "/datasources/" + device.deviceID + "/streams" ;
+    _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _callbackRequestState (false);
-    _callbackError (err);
+    _COMMONS.callbackRequestState (false);
+    _COMMONS.callbackError (err);
   } 
 };
 
@@ -188,7 +97,7 @@ function getStreams (device, callback){
 //  request to get the device address
 //
 //  in:
-//    device.datasource {string}: datasource identifier
+//    device.deviceID {string}: datasource identifier
 //    callback (devAddr {string}): function called in case of success
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -218,9 +127,9 @@ function getDevAddr (device, callback){
         throw ("'devaddr' key missing");
       callback (devAddr);
     } catch (err){
-      _callbackError (err);
+      _COMMONS.callbackError (err);
     } finally {
-      _callbackRequestState (false);
+      _COMMONS.callbackRequestState (false);
     }
   };
   
@@ -228,11 +137,11 @@ function getDevAddr (device, callback){
   
   try {  
     var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.datasource ;
-    sendRequest (request, callbackReceive, urlPath, "GET");
+    var urlPath = "/datasources/" + device.deviceID ;
+    _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _callbackRequestState (false);
-    _callbackError (err);
+    _COMMONS.callbackRequestState (false);
+    _COMMONS.callbackError (err);
   } 
 };
 
@@ -240,7 +149,7 @@ function getDevAddr (device, callback){
 //  initialization of all constant data for a device (stream identifiers, encryption context)
 //
 //  in:
-//    device.datasource {string}: datasource identifier
+//    device.deviceID {string}: datasource identifier
 //    appSKey {string}: AES encryption/decryption cipher application session key ("" for no encryption)
 //    callback: function called in case of success (if not undefined)
 //  out:
@@ -254,8 +163,8 @@ function initDevice (device, appSKey, callback){
   
   function callback2 (devAddr){
   
-    var devAddrBin = convertHexToByteArray (devAddr);    
-    var appSKeyBin = convertHexToByteArray (appSKey);
+    var devAddrBin = _COMMONS.convertHexToByteArray (devAddr);    
+    var appSKeyBin = _COMMONS.convertHexToByteArray (appSKey);
     device.encryptionContext = _LPWAN_ENCRYPTION.createContext (appSKeyBin, devAddrBin);   
     if (callback !== undefined)
       callback ();
@@ -298,13 +207,13 @@ function getDownlinkFrameCounter (device, callback){
       if (response.lastValue === undefined)
         throw ("'lastValue' field missing");
       var frameCounter = response.lastValue ;
-      if (! isValidPositiveInt (frameCounter))
+      if (! _COMMONS.isValidPositiveInt (frameCounter))
         throw ("wrong frame counter value");
       callback (frameCounter);
     } catch (err){
-      _callbackError (err);
+      _COMMONS.callbackError (err);
     } finally {
-      _callbackRequestState (false);
+      _COMMONS.callbackRequestState (false);
     }
   };
   
@@ -312,11 +221,11 @@ function getDownlinkFrameCounter (device, callback){
 
   try {
     var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.datasource + "/streams/" + device.streams.downlinkFcnt ;
-    sendRequest (request, callbackReceive, urlPath, "GET");
+    var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.downlinkFcnt ;
+    _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _callbackRequestState (false);
-    _callbackError (err);
+    _COMMONS.callbackRequestState (false);
+    _COMMONS.callbackError (err);
   } 
 };
 
@@ -361,9 +270,9 @@ function getLastMessage (device, callback){
 
       if (message.value === undefined)
         throw ("'value' field missing");
-      if (! isValidHex (message.value))
+      if (! _COMMONS.isValidHex (message.value))
         throw ("non hexadecimal value");
-      var value = convertHexToByteArray (message.value);
+      var value = _COMMONS.convertHexToByteArray (message.value);
       if (device.encryptionContext !== undefined)     
         _LPWAN_ENCRYPTION.encryptOrDecrypt (device.encryptionContext, true, metadata.fcnt, value, value);
       
@@ -371,9 +280,9 @@ function getLastMessage (device, callback){
 
       callback (value, at, metadata);
     } catch (err){
-      _callbackError (err);
+      _COMMONS.callbackError (err);
     } finally {
-      _callbackRequestState (false);
+      _COMMONS.callbackRequestState (false);
     }
   }; 
 
@@ -381,12 +290,12 @@ function getLastMessage (device, callback){
 
   try {
     var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.datasource + "/streams/" + device.streams.message +
+    var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.message +
       "/values?pagesize=1&pagenumber=1";
-    sendRequest (request, callbackReceive, urlPath, "GET");  
+    _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");  
   } catch (err){
-    _callbackRequestState (false);
-    _callbackError (err);
+    _COMMONS.callbackRequestState (false);
+    _COMMONS.callbackError (err);
   } 
 };
 
@@ -396,13 +305,14 @@ function getLastMessage (device, callback){
 //  in:
 //    device {object}: device identifiers, encryption context
 //    value {Uint8Array}: payload
-//    metadata {object}: { fcnt: ..., port: ..., confirmed: ... }
+//    port {uint}: transmittion port
+//    confirmed {boolean stringified}: send confirmed message
 //    callback (response[0] {object}): function called in case of success
 //  out:
 //    value {Uint8Array}: encrypted payload
 //------------------------------------------------------------------------------------------------------------------------
 
-function sendCommand (device, value, metadata, callback){
+function sendCommand (device, value, port, confirmed, callback){
 
   //----- reception callback
 
@@ -413,45 +323,59 @@ function sendCommand (device, value, metadata, callback){
       if (request.status !== 201)
         throw ("wrong status");
       var response = JSON.parse (request.responseText);
-      if ((!Array.isArray (response))||(response.length != 1))
+      if ((!Array.isArray (response))||(response.length < 1))
         throw ("wrong response");
       if (callback !== undefined)
-        callback (response[0]);
+        callback (response[0].at);
     } catch (err){
-      _callbackError (err);
+      _COMMONS.callbackError (err);
     } finally {
-      _callbackRequestState (false);
+      _COMMONS.callbackRequestState (false);
     }
-  }; 
+  };
+  
+  function callbackFrameCount(frameCounter) {
+    try {
+      var command = {
+        value: _COMMONS.convertByteArrayToHex (value),
+        metadata: {
+          fcnt: frameCounter + 1,
+          port: port,
+          confirmed: confirmed
+        }
+      };
+
+      //----- send payload
+
+      var request = new XMLHttpRequest();
+      var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.command + "/values";
+      _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "POST", command);
+    } catch (err){
+      _COMMONS.callbackRequestState (false);
+      _COMMONS.callbackError (err);
+    } 
+  }
   
   //----- main
 
   try {
-    _callbackRequestState (true);
+    _COMMONS.callbackRequestState (true);
     
     //----- command
 
-    if (! isValidPositiveInt (metadata.fcnt))
+    if (! _COMMONS.isValidPositiveInt (metadata.fcnt))
       throw ("wrong 'metadata.fcnt' value");
-    if (! isValidPositiveInt (metadata.port))
+    if (! _COMMONS.isValidPositiveInt (metadata.port))
       throw ("wrong 'metadata.port' value");
     if ((metadata.confirmed !== "true")&&(metadata.confirmed !== "false"))
       throw ("wrong 'metadata.confirmed' value");
     if (device.encryptionContext !== undefined)
       _LPWAN_ENCRYPTION.encryptOrDecrypt (device.encryptionContext, false, metadata.fcnt, value, value);
-    var command = {
-      value: convertByteArrayToHex (value),
-      metadata: metadata
-    }
-
-    //-----
-
-    var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.datasource + "/streams/" + device.streams.command + "/values";
-    sendRequest (request, callbackReceive, urlPath, "POST", command);
+      
+    getDownlinkFrameCounter (device, callbackFrameCount);
   } catch (err){
-    _callbackRequestState (false);
-    _callbackError (err);
+    _COMMONS.callbackRequestState (false);
+    _COMMONS.callbackError (err);
   } 
 };
 
@@ -460,8 +384,6 @@ function sendCommand (device, value, metadata, callback){
 //------------------------------------------------------------------------------------------------------------------------
 
 return {
-  convertHexToByteArray: convertHexToByteArray,
-  convertByteArrayToHex: convertByteArrayToHex,
   init: init,
   initDevice: initDevice,
   getDownlinkFrameCounter: getDownlinkFrameCounter,
