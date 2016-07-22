@@ -151,10 +151,12 @@ function onClickSendCommand (){
     value[0] = 1 ;
   else
     value[0] = 2 ;   // ajout BLK Value TANS le 22/01/2016
-    document.getElementById ("tx-value").innerHTML = "0x" + _COMMONS.convertByteArrayToHex (value);
-    
-    // send payload
-    _server.sendCommand (_myDevice, value, _CONFIG.CmdFPort, "true", callbackSent);
+  
+  //update UI
+  document.getElementById ("tx-value").innerHTML = "0x" + _COMMONS.convertByteArrayToHex (value);
+  
+  // send payload
+  _server.sendCommand (_myDevice, value, _CONFIG.CmdFPort, "true", callbackSent);
 }
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -162,7 +164,7 @@ function onClickSendCommand (){
 //------------------------------------------------------------------------------------------------------------------------
 
 window.onload = function (e){
-
+  
   document.getElementById ("deviceID").innerHTML = _CONFIG.deviceID ;
   _bargraph = Bargraph ("bargraph", _CONFIG.lightMin, _CONFIG.lightMax);
   

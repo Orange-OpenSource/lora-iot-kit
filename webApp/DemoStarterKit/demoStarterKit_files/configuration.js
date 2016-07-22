@@ -18,14 +18,14 @@ var _CONFIG_DATAVENUE = {
   url: "https://api.orange.com/datavenue/v1", 
   
   //----- datasource identifier for the concerned device   
-  deviceID : "1cc07401e00140fd91498a2355bb35db",
+  deviceID : "64573ee580134f63a00bf7872944e751",
    
   //----- AES encryption/decryption cipher application session key (use "" for no encryption)   
-  appSKey : "2e9017786eef1234567897c456242",  
+  appSKey : "603f624ec187bb8c7b8542b56d1f93e3",  
    
   //----- security keys   
-  X_OAPI_Key : "mr58123456789d3koGvOOBWntDZIak12",
-  X_ISS_Key : "dcc5dff123456755555855dcd5be3ac4e"
+  X_OAPI_Key : "hV3oAZsiF4wAX61hLny7GjmBWAgW3X61",
+  X_ISS_Key : "29b75f797628460a8baadd76ff7f008c"
 };
 
 //========================================================================================================================   
@@ -67,7 +67,7 @@ var _CONFIG_COMMONS = {
 };
 
 var _CONFIG = 
-/*
+//*
 _CONFIG_DATAVENUE
 /*///*
 _CONFIG_LOM

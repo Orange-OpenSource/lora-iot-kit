@@ -53,7 +53,7 @@ function getStreams (device, callback){
   //----- reception callback
 
   function callbackReceive (){
-  
+    
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
@@ -72,6 +72,7 @@ function getStreams (device, callback){
         (streams.downlinkFcnt === undefined)||(streams.battery === undefined))
         throw ("missing stream");
       device.streams = streams ;
+      
       if (callback != undefined)
         callback ();
     } catch (err){
@@ -162,7 +163,6 @@ function initDevice (device, appSKey, callback){
   //----- callback 2
   
   function callback2 (devAddr){
-  
     var devAddrBin = _COMMONS.convertHexToByteArray (devAddr);    
     var appSKeyBin = _COMMONS.convertHexToByteArray (appSKey);
     device.encryptionContext = _LPWAN_ENCRYPTION.createContext (appSKeyBin, devAddrBin);   
@@ -173,7 +173,6 @@ function initDevice (device, appSKey, callback){
   //----- callback 1
   
   function callback1 (){
-  
     if ((typeof appSKey !== "string")||((appSKey.length !== 0)&&(appSKey.length !== 32)))
       throw ("wrong 'appSKey' value");
     if (appSKey.length > 0)
@@ -242,16 +241,17 @@ function getLastMessage (device, callback){
   //----- reception callback
 
   function callbackReceive (){
-  
+    
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("wrong status " + request.status);
       var response = JSON.parse (request.responseText);
-      if ((!Array.isArray (response))||(response.length != 1))
+      
+      if ((!Array.isArray (response))||(response.length < 1))
         throw ("wrong response");
       var message = response[0];
-
+       
       //----- metadata
 
       if (message.metadata === undefined)
@@ -267,11 +267,12 @@ function getLastMessage (device, callback){
       var at = new Date (message.at);
 
       //----- value
-
       if (message.value === undefined)
         throw ("'value' field missing");
       if (! _COMMONS.isValidHex (message.value))
         throw ("non hexadecimal value");
+      
+      //decrypt data
       var value = _COMMONS.convertHexToByteArray (message.value);
       if (device.encryptionContext !== undefined)     
         _LPWAN_ENCRYPTION.encryptOrDecrypt (device.encryptionContext, true, metadata.fcnt, value, value);
@@ -284,7 +285,7 @@ function getLastMessage (device, callback){
     } finally {
       _COMMONS.callbackRequestState (false);
     }
-  }; 
+  };
 
   //----- main
 
@@ -296,7 +297,7 @@ function getLastMessage (device, callback){
   } catch (err){
     _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
-  } 
+  }
 };
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -313,37 +314,47 @@ function getLastMessage (device, callback){
 //------------------------------------------------------------------------------------------------------------------------
 
 function sendCommand (device, value, port, confirmed, callback){
-
-  //----- reception callback
-
-  function callbackReceive (){
-  
-    if (request.readyState !== 4) return ;
-    try {
-      if (request.status !== 201)
-        throw ("wrong status");
-      var response = JSON.parse (request.responseText);
-      if ((!Array.isArray (response))||(response.length < 1))
-        throw ("wrong response");
-      if (callback !== undefined)
-        callback (response[0].at);
-    } catch (err){
-      _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
-    }
-  };
   
   function callbackFrameCount(frameCounter) {
+    //----- reception callback
+
+    function callbackReceive (){
+    
+      if (request.readyState !== 4) return ;
+      try {
+        if (request.status !== 200 && request.status !== 201)
+          throw ("wrong status " + request.status);
+        var response = JSON.parse (request.responseText);
+        if ((!Array.isArray (response))||(response.length < 1))
+          throw ("wrong response");
+        if (callback !== undefined)
+          callback (response[0].at);
+      } catch (err) {
+        _COMMONS.callbackError (err);
+      } finally {
+        _COMMONS.callbackRequestState (false);
+      }
+    };
+    
+    //----- function body
+    
     try {
-      var command = {
-        value: _COMMONS.convertByteArrayToHex (value),
-        metadata: {
-          fcnt: frameCounter + 1,
-          port: port,
-          confirmed: confirmed
-        }
-      };
+      if (! _COMMONS.isValidPositiveInt (frameCounter))
+        throw ("wrong 'frameCounter' value");
+      
+        var command = {
+          value: undefined,
+          metadata: {
+            fcnt: frameCounter + 1,
+            port: port,
+            confirmed: confirmed
+          }
+        };
+      
+      if (device.encryptionContext !== undefined)
+        _LPWAN_ENCRYPTION.encryptOrDecrypt (device.encryptionContext, false, command.metadata.fcnt, value, value);
+
+      command.value = _COMMONS.convertByteArrayToHex (value);
 
       //----- send payload
 
@@ -353,7 +364,7 @@ function sendCommand (device, value, port, confirmed, callback){
     } catch (err){
       _COMMONS.callbackRequestState (false);
       _COMMONS.callbackError (err);
-    } 
+    }
   }
   
   //----- main
@@ -362,16 +373,13 @@ function sendCommand (device, value, port, confirmed, callback){
     _COMMONS.callbackRequestState (true);
     
     //----- command
-
-    if (! _COMMONS.isValidPositiveInt (metadata.fcnt))
-      throw ("wrong 'metadata.fcnt' value");
-    if (! _COMMONS.isValidPositiveInt (metadata.port))
-      throw ("wrong 'metadata.port' value");
-    if ((metadata.confirmed !== "true")&&(metadata.confirmed !== "false"))
-      throw ("wrong 'metadata.confirmed' value");
-    if (device.encryptionContext !== undefined)
-      _LPWAN_ENCRYPTION.encryptOrDecrypt (device.encryptionContext, false, metadata.fcnt, value, value);
-      
+    
+    if (! _COMMONS.isValidPositiveInt (port))
+      throw ("wrong 'port' value");
+  
+    if ((confirmed !== "true")&&(confirmed !== "false"))
+      throw ("wrong 'confirmed' value");
+    
     getDownlinkFrameCounter (device, callbackFrameCount);
   } catch (err){
     _COMMONS.callbackRequestState (false);
