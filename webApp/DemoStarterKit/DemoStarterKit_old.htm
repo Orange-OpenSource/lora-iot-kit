@@ -14,7 +14,6 @@ or at 'http://www.apache.org/licenses/LICENSE-2.0'.
 -->
 <head>
   <title>LoRa IoT Démo Starter Kit</Title>
-  <link rel="stylesheet" type="text/css" href="demoStarterKit_files/materialize.css">
   <link rel="stylesheet" type="text/css" href="demoStarterKit_files/main.css">
   
   <script src="generic_files/aes_encryption.js"></script>
@@ -51,7 +50,7 @@ or at 'http://www.apache.org/licenses/LICENSE-2.0'.
 <!--
 ==========================================================================================================================
 -->
-  <input id="rx-button" type="button" class="btn-large waves-effect waves-light" value="get last received message" onclick="_MAIN.onClickGetMessage ()">
+  <input id="rx-button" type="button" value="get last received message" onclick="_MAIN.onClickGetMessage ()">
   <div class="frame2">
     <div>
       <div class="col width2">last request</div>
@@ -93,42 +92,35 @@ or at 'http://www.apache.org/licenses/LICENSE-2.0'.
 <!--
 ==========================================================================================================================
 -->
-  <input id="tx-button" type="button" class="btn-large waves-effect waves-light" value="send command" onclick="_MAIN.onClickSendCommand ()">
+  <input id="tx-button" type="button" value="send command" onclick="_MAIN.onClickSendCommand ()">
   <div class="frame2">
     <div>
       <div class="col width2">last request</div>
       <div class="frame3">
-        <div>     
-          <div class="col width3">command date</div>
-          <div class="inline read-only" id="tx-date"></div>
-        </div>
-        <div>
-          <div class="col width3">value</div>
-          <div class="inline read-only" id="tx-value"></div>
-        </div>
-        <div>
-          <div class="col width3">frame counter</div>
-          <div class="inline read-only" id="tx-frame-counter"></div>
-        </div>
+      <div>     
+        <div class="col width3">command date</div>
+        <div class="inline read-only" id="tx-date"></div>
+      </div>
+      <div>
+        <div class="col width3">value</div>
+        <div class="inline read-only" id="tx-value"></div>
+      </div>
+      <div>
+        <div class="col width3">frame counter</div>
+        <div class="inline read-only" id="tx-frame-counter"></div>
+      </div>
       </div>
     </div>
     <div class="space-vert">
       <div class="col width2">application data</div>
       <div class="frame3">
         <div>
-          <span class="col width3">led</span>
-          <span>
-            <input id="tx-led-on" class="with-gap" name="tx-led" type="radio" />
-            <label for="tx-led-on" class="read-only">ON</label>
-          </span>
-          <span>
-            <input id="tx-led-off" class="with-gap" name="tx-led" type="radio" />
-            <label for="tx-led-off" class="read-only">OFF</label>
-          </span>
-          <span>
-            <input id="tx-led-Blink" class="with-gap" name="tx-led" type="radio" />
-            <label for="tx-led-Blink" class="read-only">Blink</label>
-          </span>
+          <div class="col width3">led</div>
+          <div class="inline">
+            <input id="tx-led-on" type="radio" name="tx-led" checked>On&nbsp;&nbsp;
+			<input id="tx-led-off" type="radio" name="tx-led" checked>Off&nbsp;&nbsp;
+            <input id="tx-led-Blink" type="radio" name="tx-led">Blink     <!------TANS 20012016-------->
+          </div>
         </div>
       </div>
     </div>

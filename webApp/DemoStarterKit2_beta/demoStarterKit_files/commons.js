@@ -16,7 +16,12 @@
 var _COMMONS = (function (){
 
   var
-    _BLANK_FUNCTION = function(){ return undefined ;},
+    _BLANK_FUNCTION = function(args){ 
+      if(args) 
+        console.error(args);
+      else 
+        console.error("_BLANK_FUNCTION() call");
+    },
     _url,
     _timeout;
 
@@ -58,7 +63,6 @@ var _COMMONS = (function (){
   //------------------------------------------------------------------------------------------------------------------------
 
   function isValidHex (obj){
-
     return ((typeof obj === "string")&&(obj.match (/^([0-9a-f][0-9a-f])+$/) !== null));
   }
 
@@ -80,12 +84,13 @@ var _COMMONS = (function (){
   //    callbackRequestState (ongoingRequest {boolean}): function called at the beginning and end of a request (if not undefined)
   //------------------------------------------------------------------------------------------------------------------------
 
-  function init (url, timeout, callbackError, callbackRequestState){
+  function init (url, timeout, callbackError, callbackRequestStateRx, callbackRequestStateTx){
 
     _url = url ;
     _timeout = timeout ;
-    _COMMONS.callbackError = (callbackError) ? _BLANK_FUNCTION : callbackError ;
-    _COMMONS.callbackRequestState = (callbackRequestState) ? _BLANK_FUNCTION : callbackRequestState ;
+    _COMMONS.callbackError = (callbackError) ? callbackError : _BLANK_FUNCTION ;
+    _COMMONS.callbackRequestStateRx = (callbackRequestStateRx) ? callbackRequestStateRx : _BLANK_FUNCTION ;
+    _COMMONS.callbackRequestStateTx = (callbackRequestStateTx) ? callbackRequestStateTx : _BLANK_FUNCTION ;
   }
 
   //------------------------------------------------------------------------------------------------------------------------
@@ -103,9 +108,6 @@ var _COMMONS = (function (){
   function sendRequest (request, callbackReceive, urlPath, headers, method, json){
 
     console.debug("send " + method + " " + _url + urlPath);
-
-    //update UI
-    _COMMONS.callbackRequestState (true);
     
     //open REST
     request.open (method, _url + urlPath, true);
@@ -117,11 +119,12 @@ var _COMMONS = (function (){
     }
       
     //callback receive
-    request.onreadystatechange = callbackReceive ;
+    request.onreadystatechange = callbackReceive;
+    //request.onerror = function(e) { _COMMONS.callbackError("sending request"); };
     
     //timeout
     request.timeout = _timeout ;
-    request.ontimeout = function () { _COMMONS.callbackError ("timed out request"); };
+    request.ontimeout = function () { _COMMONS.callbackError("timed out request"); };
     
     //send data
     var data ;
@@ -131,8 +134,9 @@ var _COMMONS = (function (){
       console.debug("DATA: " + data);
     } else
       data = null ;
-      
+    
     request.send (data);
+    
   }
 
   //------------------------------------------------------------------------------------------------------------------------
@@ -146,7 +150,8 @@ var _COMMONS = (function (){
     isValidPositiveInt: isValidPositiveInt,
     init: init,
     sendRequest: sendRequest,
-    callbackRequestState: undefined,
+    callbackRequestStateTx: undefined,
+    callbackRequestStateRx: undefined,
     callbackError: undefined
   };
 

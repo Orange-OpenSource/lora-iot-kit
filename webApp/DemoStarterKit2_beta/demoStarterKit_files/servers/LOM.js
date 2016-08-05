@@ -41,32 +41,33 @@ function init (X_API_Key){
 //------------------------------------------------------------------------------------------------------------------------
 
 function getLastMessage (device, callback){
-
-  //----- reception callback
-
-  function callbackReceive (){
   
+  //----- reception callback
+  function callbackReceive (){
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("request status: " + request.status);
+        
       var response = JSON.parse (request.responseText);
       if ((!Array.isArray (response))||(response.length < 1))
-        throw ("wrong response");
+        throw ("wrong response: " + JSON.stringify(response));
+
+      //----- data
+      
       var message = response[0];
 
-      //----- metadata
-
       if (message.value === undefined)
-        throw ("'value' field missing");
+        throw ("'value' field missing: " + JSON.stringify(message));
+        
       var value = message.value ;
       if (value.fcnt === undefined)
-        throw ("'value.fcnt' field missing");
+        throw ("'value.fcnt' field missing: " + JSON.stringify(message));
         
       //----- date   
 
       if (message.timestamp === undefined)
-        throw ("'timestamp' field missing");
+        throw ("'timestamp' field missing: " + JSON.stringify(message));
       var timestamp = new Date (message.timestamp);
 
       //----- value
@@ -74,16 +75,15 @@ function getLastMessage (device, callback){
       if (value.payload === undefined)
         throw ("'payload' field missing");
       if (! _COMMONS.isValidHex (value.payload))
-        throw ("non hexadecimal payload");
+        throw ("non hexadecimal payload: " + value.payload);
       var payload = _COMMONS.convertHexToByteArray (value.payload);
       
       //-----
 
       callback (payload, timestamp, value);
     } catch (err){
-      _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
+      _COMMONS.callbackError(err);
+      _COMMONS.callbackRequestStateRx (false);
     }
   }; 
 
@@ -94,8 +94,8 @@ function getLastMessage (device, callback){
     var urlPath = "/data/streams/urn:lora:" + device.deviceID + "!uplink?limit=1";
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
+    _COMMONS.callbackRequestStateRx (false);
   } 
 };
 
@@ -121,7 +121,7 @@ function sendCommand (device, value, port, confirmed, callback){
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("request status: " + request.status);
         
       var response = JSON.parse (request.responseText);
       
@@ -129,16 +129,13 @@ function sendCommand (device, value, port, confirmed, callback){
         callback (response.creationTs);
     } catch (err){
       _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
+      _COMMONS.callbackRequestStateTx (false);
     }
   }; 
   
   //----- main
 
-  try {
-    _COMMONS.callbackRequestState (true);
-    
+  try {    
     //----- command
 
     var command = {
@@ -148,9 +145,9 @@ function sendCommand (device, value, port, confirmed, callback){
     };
 
     if (! _COMMONS.isValidHex (command.data))
-      throw ("wrong hex value");
+      throw ("wrong hex value: " + command.data);
     if (! _COMMONS.isValidPositiveInt (command.port))
-      throw ("wrong 'metadata.port' value");
+      throw ("wrong 'metadata.port' value: " + command.port);
 
     //-----
 
@@ -158,8 +155,8 @@ function sendCommand (device, value, port, confirmed, callback){
     var urlPath = "/vendors/lora/devices/" + device.deviceID + "/commands";
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "POST", command);
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
+    _COMMONS.callbackRequestStateTx (false);
   }
 };
 

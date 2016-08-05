@@ -57,28 +57,31 @@ function getStreams (device, callback){
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("request status: " + request.status);
+        
       var response = JSON.parse (request.responseText);
       var streams = {};
       for (var i = 0; i < response.length; i++){
         var stream = response[i];
+        
         if (stream.id === undefined)
           throw ("'id' field missing");
         if (stream.name === undefined)
           throw ("'name' field missing");
+          
         streams[stream.name] = stream.id ;
       }
+      
       if ((streams.message === undefined)||(streams.command === undefined)||
         (streams.downlinkFcnt === undefined)||(streams.battery === undefined))
-        throw ("missing stream");
+        throw ("missing stream: " + JSON.stringify(streams));
       device.streams = streams ;
       
       if (callback != undefined)
         callback ();
+        
     } catch (err){
       _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
     }
   };
   
@@ -89,7 +92,6 @@ function getStreams (device, callback){
     var urlPath = "/datasources/" + device.deviceID + "/streams" ;
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
   } 
 };
@@ -111,10 +113,12 @@ function getDevAddr (device, callback){
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("request status: " + request.status);
+        
       var response = JSON.parse (request.responseText);
       if (response.metadata === undefined)
-        throw ("'metadata' field missing");
+        throw ("'metadata' field missing: " + request.responseText);
+        
       var metadata = response.metadata ;     
       var devAddr ;
       for (var i = 0; i < metadata.length; i++){
@@ -124,13 +128,13 @@ function getDevAddr (device, callback){
           break ;
         }
       }
+      
       if (devAddr === undefined)
         throw ("'devaddr' key missing");
+        
       callback (devAddr);
     } catch (err){
       _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
     }
   };
   
@@ -141,7 +145,6 @@ function getDevAddr (device, callback){
     var urlPath = "/datasources/" + device.deviceID ;
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
   } 
 };
@@ -174,7 +177,8 @@ function initDevice (device, appSKey, callback){
   
   function callback1 (){
     if ((typeof appSKey !== "string")||((appSKey.length !== 0)&&(appSKey.length !== 32)))
-      throw ("wrong 'appSKey' value");
+      throw ("wrong 'appSKey' value: " + appSKey);
+      
     if (appSKey.length > 0)
       getDevAddr (device, callback2);
   }
@@ -193,26 +197,27 @@ function initDevice (device, appSKey, callback){
 //------------------------------------------------------------------------------------------------------------------------
 
 function getDownlinkFrameCounter (device, callback){
-  console.debug("getDownlinkFrameCounter()");
+  
   //----- reception callback
-
   function callbackReceive (){
   
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status");
+        throw ("request status: " +  request.status);
+        
       var response = JSON.parse (request.responseText);
       if (response.lastValue === undefined)
-        throw ("'lastValue' field missing");
+        throw ("'lastValue' field missing: " + request.responseText);
+        
       var frameCounter = response.lastValue ;
       if (! _COMMONS.isValidPositiveInt (frameCounter))
-        throw ("wrong frame counter value");
+        throw ("wrong frame counter value: " + frameCounter);
+        
       callback (frameCounter);
     } catch (err){
       _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
+      _COMMONS.callbackRequestStateTx (false);
     }
   };
   
@@ -223,8 +228,8 @@ function getDownlinkFrameCounter (device, callback){
     var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.downlinkFcnt ;
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
+    _COMMONS.callbackRequestStateTx (false);
   } 
 };
 
@@ -245,32 +250,33 @@ function getLastMessage (device, callback){
     if (request.readyState !== 4) return ;
     try {
       if (request.status !== 200)
-        throw ("wrong status " + request.status);
+        throw ("request status " + request.status);
+        
       var response = JSON.parse (request.responseText);
-      
       if ((!Array.isArray (response))||(response.length < 1))
-        throw ("wrong response");
-      var message = response[0];
+        throw ("wrong response: " + request.responseText);
        
       //----- metadata
+      
+      var message = response[0];
 
       if (message.metadata === undefined)
-        throw ("'metadata' field missing");
+        throw ("'metadata' field missing: " + JSON.stringify(message));
       var metadata = message.metadata ;
       if (metadata.fcnt === undefined)
-        throw ("'metadata.fcnt' field missing");
+        throw ("'metadata.fcnt' field missing: " + JSON.stringify(message));
         
       //----- date        
 
       if (message.at === undefined)
-        throw ("'at' field missing");
+        throw ("'at' field missing: " + JSON.stringify(message));
       var at = new Date (message.at);
 
       //----- value
       if (message.value === undefined)
-        throw ("'value' field missing");
+        throw ("'value' field missing: " + JSON.stringify(message));
       if (! _COMMONS.isValidHex (message.value))
-        throw ("non hexadecimal value");
+        throw ("non hexadecimal value: " + message.value);
       
       //decrypt data
       var value = _COMMONS.convertHexToByteArray (message.value);
@@ -282,8 +288,7 @@ function getLastMessage (device, callback){
       callback (value, at, metadata);
     } catch (err){
       _COMMONS.callbackError (err);
-    } finally {
-      _COMMONS.callbackRequestState (false);
+      _COMMONS.callbackRequestStateRx (false);
     }
   };
 
@@ -291,12 +296,11 @@ function getLastMessage (device, callback){
 
   try {
     var request = new XMLHttpRequest();
-    var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.message +
-      "/values?pagesize=1&pagenumber=1";
+    var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.message + "/values?pagesize=1&pagenumber=1";
     _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "GET");  
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
+    _COMMONS.callbackRequestStateRx (false);
   }
 };
 
@@ -317,22 +321,22 @@ function sendCommand (device, value, port, confirmed, callback){
   
   function callbackFrameCount(frameCounter) {
     //----- reception callback
-    console.debug("callbackFrameCount(" + frameCounter + ")");
     function callbackReceive (){
       
       if (request.readyState !== 4) return ;
       try {
         if (request.status !== 200 && request.status !== 201)
-          throw ("wrong status " + request.status);
+          throw ("request status: " + request.status);
+          
         var response = JSON.parse (request.responseText);
         if ((!Array.isArray (response))||(response.length < 1))
-          throw ("wrong response");
+          throw ("wrong response: " + request.responseText);
+          
         if (callback !== undefined)
           callback (response[0].at);
       } catch (err) {
         _COMMONS.callbackError (err);
-      } finally {
-        _COMMONS.callbackRequestState (false);
+        _COMMONS.callbackRequestStateTx (false);
       }
     };
     
@@ -340,7 +344,7 @@ function sendCommand (device, value, port, confirmed, callback){
     
     try {
       if (! _COMMONS.isValidPositiveInt (frameCounter))
-        throw ("wrong 'frameCounter' value");
+        throw ("wrong 'frameCounter' value: " + frameCounter);
       
       var command = [{
         value: undefined,
@@ -366,25 +370,23 @@ function sendCommand (device, value, port, confirmed, callback){
       var urlPath = "/datasources/" + device.deviceID + "/streams/" + device.streams.command + "/values";
       _COMMONS.sendRequest (request, callbackReceive, urlPath, headers, "POST", command);
     } catch (err){
-      _COMMONS.callbackRequestState (false);
       _COMMONS.callbackError (err);
+      _COMMONS.callbackRequestStateTx (false);
     }
   }
   
   //----- main
 
-  try {
-    _COMMONS.callbackRequestState (true);
-    
+  try {    
     //----- command
     
     if (! _COMMONS.isValidPositiveInt (port))
-      throw ("wrong 'port' value");
+      throw ("wrong 'port' value: " + port);
     
     getDownlinkFrameCounter (device, callbackFrameCount);
   } catch (err){
-    _COMMONS.callbackRequestState (false);
     _COMMONS.callbackError (err);
+    _COMMONS.callbackRequestStateTx (false);
   } 
 };
 
