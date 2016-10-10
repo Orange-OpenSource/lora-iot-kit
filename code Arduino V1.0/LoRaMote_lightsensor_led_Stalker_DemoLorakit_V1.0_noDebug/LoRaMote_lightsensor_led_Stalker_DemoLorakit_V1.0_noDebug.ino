@@ -18,6 +18,8 @@
  
 #include <math.h>
 
+#define SerialXBee Serial
+
 byte ArrayOfFourBytes[4];
 
 int i_cmp = 0;
@@ -44,7 +46,7 @@ const int THRESHOLDVALUE=10;    //The threshold for which the LED should turn on
 void setup()
 { 
     // *********** init Debug and Bee baud rate ***********************************
-  initXbeeDebugSerials(19200);  // xbee baud rate = 19200 on Atmega side
+  initXbeeDebugSerialXBees(19200);  // xbee baud rate = 19200 on Atmega side
     
   // *********** init digital pins **********************************************
   pinMode(PCB_LEDPIN,OUTPUT);      //Set the LED on Digital 12 as an OUTPUT
@@ -70,14 +72,14 @@ void loop()
    sendLightSensorValuetoNanoN8(sensorValue);
    delay(1000);
       
-   /********* Down Link get serial data  *****************************/
+   /********* Down Link get SerialXBee data  *****************************/
     l_milli = millis();
-    while (Serial.available () == 0) {
+    while (SerialXBee.available () == 0) {
      if((millis()-l_milli) > 2100) break;
     }
-    while (Serial.available () > 0) {
-      // read the down link serial Data:
-      by_CdeLed = Serial.read();
+    while (SerialXBee.available () > 0) {
+      // read the down link SerialXBee Data:
+      by_CdeLed = SerialXBee.read();
       
       switch (by_CdeLed) {
          case 0: led_On_Off(PCB_LEDPIN, by_OFF, EXT_LEDPIN, by_IDL);
@@ -94,9 +96,9 @@ void loop()
 
 /*************************** methods **********************************/
 
- void initXbeeDebugSerials(int xbee_rate)
+ void initXbeeDebugSerialXBees(int xbee_rate)
  {
-  Serial.begin(xbee_rate);       // the Bee baud rate on Software Serial Atmega
+  SerialXBee.begin(xbee_rate);       // the Bee baud rate on Software SerialXBee Atmega
   delay(1000);
  } 
 
@@ -104,19 +106,19 @@ void loop()
  {
   // ************ Command Mode *****************
   // set ATO & ATM Parameters (Unconf frame, port com, encoding, rx payload only, Duty Cycle...)    
-  Serial.print("+++");          // Enter command mode
+  SerialXBee.print("+++");          // Enter command mode
   delay(1500);
         
-  //Serial.println("Read module version (DevEUI) : ");          
-  Serial.print("ATV\n");    // Return module version, DevEUI (LSB first), Stack version.
+  //SerialXBee.println("Read module version (DevEUI) : ");          
+  SerialXBee.print("ATV\n");    // Return module version, DevEUI (LSB first), Stack version.
   delay(1500);
   
   /***************** Rx ****************************************/
-  Serial.print("ATM007=06\n");    // Baud rate 19200
+  SerialXBee.print("ATM007=06\n");    // Baud rate 19200
   delay(1500);
  
   /***********************Quit COMMAND MODE ********************/  
-  Serial.print("ATQ\n");        // Quit command mode
+  SerialXBee.print("ATQ\n");        // Quit command mode
   delay(1500);
   
  } 
@@ -166,11 +168,11 @@ void led_blinking(int led1, int led2, int sec)
     int byteOne = (int) i_value / 256;
     int byteTwo = (int) i_value % 256;
     
-        (by_pcbLedState==0)?Serial.write((byte)0x00):Serial.write(0x01);
-        Serial.write((byte)0x00);
-        Serial.write((byte)0x00);
-        (byteOne==0)?Serial.write((byte)0x00):Serial.write((byte)byteOne);
-        (byteTwo==0)?Serial.write((byte)0x00):Serial.write((byte)byteTwo);
+        (by_pcbLedState==0)?SerialXBee.write((byte)0x00):SerialXBee.write(0x01);
+        SerialXBee.write((byte)0x00);
+        SerialXBee.write((byte)0x00);
+        (byteOne==0)?SerialXBee.write((byte)0x00):SerialXBee.write((byte)byteOne);
+        (byteTwo==0)?SerialXBee.write((byte)0x00):SerialXBee.write((byte)byteTwo);
 
   }
 
@@ -189,4 +191,3 @@ void led_blinking(int led1, int led2, int sec)
     }
     return f_resistor;
 }
- 

@@ -18,7 +18,7 @@ var _CONFIG;
 var _CONFIG_LOM = {   
   
   //----- LOM server url   
-  url : "https://84.39.43.80/api/v0",
+  url : "https://lpwa.liveobjects.orange-business.com/api/v0", //LOM Prod
   
   //----- device identifier 
   deviceID : "",
@@ -29,32 +29,6 @@ var _CONFIG_LOM = {
 
 _CONFIG = _CONFIG_LOM; //select LOM by default
 //*/
-
-/*
-//========================================================================================================================   
-//   
-//     DATAVENUE CONFIGURATION CONSTANTS   
-//   
-//========================================================================================================================   
-
-var _CONFIG_DATAVENUE = {   
-   
-  //----- datavenue server url   
-  url: "https://api.orange.com/datavenue/v1", 
-  
-  //----- datasource identifier for the concerned device   
-  deviceID : "",
-   
-  //----- AES encryption/decryption cipher application session key (use "" for no encryption)   
-  appSKey : "",  
-   
-  //----- security keys   
-  X_OAPI_Key : "",
-  X_ISS_Key : ""
-};
-//*/
-
-//_CONFIG = _CONFIG_DATAVENUE; //select Datavenue by default
 
 //========================================================================================================================   
 //   
@@ -72,7 +46,7 @@ var _CONFIG_COMMONS = {
    
   //----- light sensor measurement range   
   lightMin:   10,   //  darkness one hundred per cent   
-  lightMax: 1100      
+  lightMax: 1023      
    
 };
 

@@ -32,7 +32,6 @@ function setRequestStateRx (ongoing){
     document.getElementById ("rx-button-loader").classList.add("invisible") ;
     document.getElementById ("rx-button").classList.remove("invisible") ;
   }
-  //document.getElementById ("request-indicator").className = ongoing ? "indicator indicator-on" : "indicator";
 }
 
 function setRequestStateTx (ongoing){
@@ -43,7 +42,6 @@ function setRequestStateTx (ongoing){
     document.getElementById ("tx-button-loader").classList.add("invisible") ;
     document.getElementById ("tx-button").classList.remove("invisible") ;
   }
-  //document.getElementById ("request-indicator").className = ongoing ? "indicator indicator-on" : "indicator";
 }
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -76,6 +74,36 @@ function formatDate (date){
 //    metadata {object}: metadata
 //------------------------------------------------------------------------------------------------------------------------
 
+function updateValues(value, ledState, lightValue){
+  document.getElementById ("rx-value").innerHTML = "0x" + _COMMONS.convertByteArrayToHex (value);
+    
+  //----- led
+  switch(ledState){
+    case 0:
+      document.getElementById ("rx-led").innerHTML = "OFF" ;
+      document.getElementById ("rx-led-icon").classList.remove("led-on") ;
+      document.getElementById ("rx-led-icon").classList.remove("led-blink") ;
+      break;
+    case 1:
+      document.getElementById ("rx-led").innerHTML = "ON" ;
+      document.getElementById ("rx-led-icon").classList.remove("led-blink") ;
+      document.getElementById ("rx-led-icon").classList.add("led-on") ;
+      break;
+    case 2:
+      document.getElementById ("rx-led").innerHTML = "Blink" ;
+      document.getElementById ("rx-led-icon").classList.remove("led-on") ;
+      document.getElementById ("rx-led-icon").classList.add("led-blink") ;  //ajout TANS 21012016
+      break;
+    default:
+      throw ("wrong led value: " + ledState);
+      break;
+  }
+  
+  //----- light sensor
+  document.getElementById ("rx-light").innerHTML = lightValue === undefined ? "Unknown" : lightValue ;
+  _bargraph.refresh(lightValue) ;
+}
+
 function displayMessage (value, at, metadata){
 
   //----- at
@@ -97,36 +125,16 @@ function displayMessage (value, at, metadata){
         document.getElementById ("rx-signal-strength-bar" + (i + 1)).classList.remove("bar-green");
   }
   
-
   //----- value
-
-  //if (value.length !== 5) // TA 18012016
-    //throw ("wrong 'value' field length (5 bytes expected)");
-  document.getElementById ("rx-value").innerHTML = "0x" + _COMMONS.convertByteArrayToHex (value);
-    
-  //----- led
-
-  var led = value[0];
-  if (led === 1){
-    document.getElementById ("rx-led").innerHTML = "ON" ;
-    document.getElementById ("rx-led-icon").classList.remove("led-blink") ;
-    document.getElementById ("rx-led-icon").classList.add("led-on") ;
-  } else if (led === 0) {
-    document.getElementById ("rx-led").innerHTML = "OFF" ;
-    document.getElementById ("rx-led-icon").classList.remove("led-on") ;
-    document.getElementById ("rx-led-icon").classList.remove("led-blink") ;
-  } else if (led === 2) {
-    document.getElementById ("rx-led").innerHTML = "Blink" ;
-    document.getElementById ("rx-led-icon").classList.remove("led-on") ;
-    document.getElementById ("rx-led-icon").classList.add("led-blink") ;  //ajout TANS 21012016
-  } else
-    throw ("wrong led value: " + led);
-  
-  //----- light sensor = value =  0x0100000109 ==> 01 x 256 + 09 x 1 = light sensor = 265  
-
-  var light = ((value[1]*256 + value[2])*256 + value[3])*256 + value[4];  
-  document.getElementById ("rx-light").innerHTML = light ;  
-  _bargraph.refresh (light);
+  //Old config: 0xAA0000BBCC  AA: LED, BBCC: Light sensor
+  if (value.length == 5)
+    updateValues(value, value[0], value[1] << 24 | value[2] << 16 | value[3] << 8 | value[4]);
+  else if(value.length == 3)
+    //New config: 0xAABBCC  AA: LED, BBCC: Light sensor
+    updateValues(value, value[0], value[1] << 8 | value[2]);
+  else
+    //Default
+    updateValues(value, 0, undefined);
   
   setRequestStateRx(false);
 };

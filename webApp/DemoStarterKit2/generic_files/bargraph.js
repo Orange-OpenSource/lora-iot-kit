@@ -34,7 +34,13 @@ function Bargraph (_divId, _valMin, _valMax){
   //------------------------------------------------------------------------------------------------------------------------
 
   function refresh (val){
-
+      if(val === undefined) {
+        //en cas d'erreur affiche la barre pleine en rouge
+        val = _valMax ;
+        _divContainer.classList.add("progress-background-red") ;
+      } else
+        _divContainer.classList.remove("progress-background-red") ;
+        
       if (val < _valMin)
         val = _valMin ;
       else if (val > _valMax)

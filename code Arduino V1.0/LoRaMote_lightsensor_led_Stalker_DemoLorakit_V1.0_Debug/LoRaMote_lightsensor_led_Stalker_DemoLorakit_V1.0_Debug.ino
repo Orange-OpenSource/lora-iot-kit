@@ -229,7 +229,6 @@ void led_blinking(int led1, int led2, int sec)
         Serial.print("--> Send four bytes:  ");
         mySerial.write(by_pcbLedState);
         for (byte i = 0; i < 4; i++) //  new light value transmit to NANO-N8
-        
              mySerial.write(uc_adr[i]);
     }
   }
