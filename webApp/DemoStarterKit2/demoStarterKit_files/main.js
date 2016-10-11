@@ -111,12 +111,6 @@ function displayMessage (value, at, metadata){
   document.getElementById ("rx-date").innerHTML = formatDate (at);
     
   //----- metadata
-
-  if(metadata.rssi !== undefined)
-    document.getElementById ("rx-rssi").innerHTML = metadata.rssi + " dBm";
-  if(metadata.snr !== undefined)
-    document.getElementById ("rx-snr").innerHTML = metadata.snr + " dB";
-
   if(metadata.signalLevel !== undefined){
     for(var i = 0; i < 5; ++i)
       if(metadata.signalLevel > i)
@@ -147,8 +141,6 @@ function onClickGetMessage (){
 
   document.getElementById ("rx-date").innerHTML = "";
   document.getElementById ("rx-value").innerHTML = "";
-  document.getElementById ("rx-snr").innerHTML = "";
-  document.getElementById ("rx-rssi").innerHTML = "";
   document.getElementById ("rx-light").innerHTML = "";
   document.getElementById ("rx-led").classList.remove("led-on");
   document.getElementById ("rx-led").classList.remove("led-blink");
@@ -201,13 +193,7 @@ function onClickSendCommand (){
 
 function init(){    
     
-  if(window._CONFIG_DATAVENUE !== undefined && window._CONFIG_LOM !== undefined) {
-    document.getElementById ("serverSelectBlock").classList.remove("invisible");
-    _CONFIG = document.getElementById ("serverSelect").checked ? _CONFIG_DATAVENUE : _CONFIG_LOM;
-  }
-  else if(window._CONFIG_DATAVENUE !== undefined)
-    _CONFIG = _CONFIG_DATAVENUE;
-  else if(window._CONFIG_LOM !== undefined)
+  if(window._CONFIG_LOM !== undefined)
     _CONFIG = _CONFIG_LOM;
   else
     throw "can't load a config";
@@ -219,28 +205,9 @@ function init(){
   
   _COMMONS.init(_CONFIG.url, _CONFIG_COMMONS.requestTimeout, displayError, setRequestStateRx, setRequestStateTx);
 
-  if(window._CONFIG_DATAVENUE !== undefined && _CONFIG == window._CONFIG_DATAVENUE) {
-    _server = _DATAVENUE;
-    _server.init (_CONFIG.X_OAPI_Key, _CONFIG.X_ISS_Key);
-    _server.initDevice (_myDevice, _CONFIG.appSKey);
-    
-    document.getElementById ("tx-frame-counter-block").classList.remove("invisible");
-    document.getElementById ("rx-rssi-block").classList.remove("invisible");
-    
-    document.getElementById ("rx-snr-name").innerHTML = "SNR";
-    document.getElementById ("rx-signal-strength").classList.add("invisible");
-    document.getElementById ("rx-snr").classList.remove("invisible");
-    
-  } else if(window._CONFIG_LOM !== undefined) {
+  if(window._CONFIG_LOM !== undefined && _CONFIG == window._CONFIG_LOM) {
     _server = _LOM;
     _server.init (_CONFIG.X_API_Key);
-    
-    document.getElementById ("tx-frame-counter-block").classList.add("invisible");
-    document.getElementById ("rx-rssi-block").classList.add("invisible");
-    
-    document.getElementById ("rx-snr-name").innerHTML = "Signal Strength";
-    document.getElementById ("rx-snr").classList.add("invisible");
-    document.getElementById ("rx-signal-strength").classList.remove("invisible");
   }
 }
 
@@ -250,9 +217,6 @@ function init(){
 
 window.onload = function (e){
   try {      
-    if(window._CONFIG_DATAVENUE !== undefined && window._CONFIG_LOM !== undefined) //if config has a default value
-      document.getElementById ("serverSelect").checked = _CONFIG === window._CONFIG_DATAVENUE;
-    
     init();
   } catch (err) {
     displayError(err);

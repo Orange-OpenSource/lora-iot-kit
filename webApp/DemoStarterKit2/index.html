@@ -26,15 +26,6 @@
     </div>
   </nav>
   
-  <div id="serverSelectBlock" class="switch center invisible">
-    <label>
-      Live Objects LPWA
-      <input type="checkbox" id="serverSelect" onclick="_MAIN.init()"/>
-      <span class="lever"></span>
-      Datavenue
-    </label>
-  </div>
-  
   <div class="card row no-bottom orange-light center">
       <span class="card-title white-text">Device ID:</span>
       <span id="deviceID" class="white-text"/>
@@ -144,10 +135,8 @@
                   </li>
                   <li id="rx-snr-block" class="collection-item">
                     <div>
-                      <span id="rx-snr-name">SNR</span>
-                      <div class="secondary-content">
-                        <span id="rx-snr">Unknown</span>
-                        
+                      <span id="rx-snr-name">Signal Strength</span>
+                      <div class="secondary-content">                        
                         <div id="rx-signal-strength" class="signal-bars"> 
                           <div id="rx-signal-strength-bar1" class="bar-1 bar"></div>
                           <div id="rx-signal-strength-bar2" class="bar-2 bar"></div>
@@ -156,12 +145,6 @@
                           <div id="rx-signal-strength-bar5" class="bar-5 bar"></div> 
                         </div>
                       </div>
-                    </div>
-                  </li>
-                  <li id="rx-rssi-block" class="collection-item">
-                    <div>
-                      <span id="rx-rssi-name">RSSI</span>
-                      <div class="secondary-content" id="rx-rssi">Unknown</div>
                     </div>
                   </li>
                 </ul>
@@ -288,7 +271,6 @@
     <script src="demoStarterKit_files/configuration.js"></script>
     
     <script src="demoStarterKit_files/commons.js"></script>
-    <script src="demoStarterKit_files/servers/datavenue.js"></script>
     <script src="demoStarterKit_files/servers/LOM.js"></script>
     
     <script src="demoStarterKit_files/main.js"></script>
