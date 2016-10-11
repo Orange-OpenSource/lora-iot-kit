@@ -26,11 +26,26 @@ input {
   width: 580px;
   vertical-align: top;
   font-size: 30pt;
-  color: #FF6501;
+  color: #F16E00;
   margin-bottom: 20px;
   font-weight: bold;
   display: inline-block;
   box-sizing: border-box;
+}
+
+.btn-large {
+  background-color: #50BE87;
+}
+
+[type="radio"]:checked + label:after,
+[type="radio"].with-gap:checked + label:before,
+[type="radio"].with-gap:checked + label:after {
+  border-color: #CD3C14;
+}
+
+[type="radio"]:checked + label:after,
+[type="radio"].with-gap:checked + label:after {
+  background-color: #CD3C14;
 }
 
 .read-only {
@@ -72,7 +87,7 @@ input {
 }
 
 .indicator-on {
-  background: #FF6501;
+  background: #FF7900;
 }
 
 /*----------------------------------------------------------------------------------------------------------
@@ -82,24 +97,24 @@ input {
 .frame1 {
   width: 620px;
   margin-top: 5px ;
-  background: #FF6501;
-  border-radius: 5px;
+  background: #FF7900;
+  border-radius: 2px;
   padding: 10px 0px 10px 10px;
 }
 
 .frame2 {
   width: 620px;
   margin-top: 10px;
-  border: 1px solid #FF6501;
-  border-radius: 8px;
+  border: 1px solid #FF7900;
+  border-radius: 2px;
   padding: 10px 0px 10px 15px;
 }
 
 .frame3 {
   display: inline-block;
   width: 410px;
-  background: #FF6501;
-  border-radius: 5px;
+  background: #4BB4E6;
+  border-radius: 2px;
   padding: 10px 0px 10px 10px;
 }
 
