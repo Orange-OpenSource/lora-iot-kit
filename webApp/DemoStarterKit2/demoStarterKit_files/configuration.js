@@ -21,10 +21,10 @@ var _CONFIG_LOM = {
   url : "https://lpwa.liveobjects.orange-business.com/api/v0", //LOM Prod
   
   //----- device identifier 
-  deviceID : "70B3D59BA000037C",
+  deviceID : "",
   
   //----- security key
-  X_API_Key : "63f9a8a6f5c942e295f12d0011908a1c"
+  X_API_Key : ""
 };
 
 _CONFIG = _CONFIG_LOM; //select LOM by default
