@@ -164,6 +164,8 @@ void initXbeeNanoN8()
   str_dummy = SerialXBee.readString();
   SerialDebug.print(" get DevEUI (LSB F) ATO070: ");    
   SerialDebug.println(str_dummy);
+  SerialDebug.print(" get DevEUI (MSB F) ATO070: "); 
+  SerialDebug.println(str_dummy.substring(0,7)+fromLSBToMSB(str_dummy.substring(7,23))+str_dummy.substring(23,25));
   delay(xbee_serial_delay);
   
   // /***************** JoinMode ****************************************/
@@ -199,6 +201,8 @@ void initXbeeNanoN8()
   str_dummy = SerialXBee.readString();
   SerialDebug.print(" get AppEUI (LSB F) ATO071: ");    
   SerialDebug.println(str_dummy);
+  SerialDebug.print(" get AppEUI (MSB F) ATO071: "); 
+  SerialDebug.println(str_dummy.substring(0,7)+fromLSBToMSB(str_dummy.substring(7,23))+str_dummy.substring(23,25));
   delay(xbee_serial_delay);
   
   /***************** AppKey ****************************************/
@@ -206,6 +210,8 @@ void initXbeeNanoN8()
   str_dummy = SerialXBee.readString();
   SerialDebug.print(" get AppKey (LSB F) ATO072: ");    
   SerialDebug.println(str_dummy);
+  SerialDebug.print(" get AppKey (MSB F) ATO072: "); 
+  SerialDebug.println(str_dummy.substring(0,7)+fromLSBToMSB(str_dummy.substring(7,39))+str_dummy.substring(39,41));
   delay(xbee_serial_delay);
   
 #else
@@ -333,3 +339,13 @@ void printLightSensorValue(int i_value, float f_value)
   SerialDebug.println(f_value);//show the light intensity on the serial monitor;
   //delay(1000);
 } 
+
+String fromLSBToMSB(String str) 
+{
+   String str_return;
+   
+   for (int i = str.length(); i>=0; i=i-2) {
+    str_return+=str.substring(i,i+2);
+  }
+  return str_return;
+}
